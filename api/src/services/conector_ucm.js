@@ -1,55 +1,76 @@
 const axios = require('axios');
 const crypto = require('crypto');
+const https = require('https');
 
-async function ejecutarConexionUCM(config) {
+const agent = new https.Agent({ rejectUnauthorized: false });
+
+// 1. NUEVA LÓGICA DE AISLAMIENTO DE COOKIES
+function parseCookies(setCookieHeader) {
+    if (!setCookieHeader) return { red: '', aislada: null };
+    
+    const cookies = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
+    
+    // Cookie de Red: Une todas las cabeceras (AWSALB, TRACKID, session-identify) para las peticiones HTTP
+    const cookieRed = cookies.map(cookie => cookie.split(';')[0]).join('; ');
+
+    // Cookie Aislada: Busca estrictamente la llave de sesión de Grandstream
+    let cookieAislada = null;
+    const cookieTarget = cookies.find(c => c.includes('session-identify'));
+    if (cookieTarget) {
+        // Extrae exactamente el valor de "session-identify=..." omitiendo rutas y parámetros de seguridad
+        cookieAislada = cookieTarget.split(';')[0]; 
+    }
+
+    return { red: cookieRed, aislada: cookieAislada };
+}
+
+async function ejecutarConexionUCM(domain, usuario, secreto) {
     try {
-        console.log(`Conexión establecida y conectada a: ${config.url}`);
-        const cuerpoChallenge = {
-            request: {
-                action:"challenge",
-                user: config.usuario,
-                version: config.version
-            }
-        };
-
-        const restChallenge = await axios.post(config.url, cuerpoChallenge);
-        if(restChallenge.data.status !== 0 || !restChallenge.data.response?.challenge) {
-           console.error('El conmutador rechazó la solicitud de reto:', restChallenge.data);
-           return false;
+        const baseURL = `https://${domain}:8443/api`;
+        
+        // PASO 1: Challenge
+        const restChallenge = await axios.post(baseURL, {
+            request: { action: "challenge", user: usuario, version: "1.0" }
+        }, { httpsAgent: agent });
+        
+        if (restChallenge.data.status !== 0) {
+           return { exito: false, mensaje: 'Reto rechazado por CloudUCM' };
         }
 
         const challenge = restChallenge.data.response.challenge;
-        const cookie = restChallenge.headers['set-cookie'];
-        console.log('PASO 1: Reto recibido del conmutador:');
+        const cookiesChallenge = parseCookies(restChallenge.headers['set-cookie']);
 
-        //FÓRMULA DE HASH: MD5(challenge + password)
-        const hash = crypto.createHash('md5').update(challenge + config.secreto).digest('hex');
+        // PASO 2: MD5 Hash
+        const hash = crypto.createHash('md5').update(challenge + secreto).digest('hex');
 
-        //BLOQUE 5: PASO 3 || ENVÍO DEL TOKEN DE LOGIN
-        const cuerpoLogin = {
-            request: {
-                action:"login",
-                user: config.usuario,
-                token: hash //SE ENVÍA BAJO EL NOMBRE "token" EN LUGAR DE "password"
-            }
-        };
-
-        const restLogin = await axios.post(config.url, cuerpoLogin, {
-            headers: {
-                Cookie: cookie //SE INCLUYE LA COOKIE RECIBIDA EN EL PASO 1
-            }
+        // PASO 3: Login
+        const restLogin = await axios.post(baseURL, {
+            request: { action: "login", token: hash, url: baseURL, user: usuario }
+        }, {
+            headers: { 'Cookie': cookiesChallenge.red },
+            httpsAgent: agent
         });
 
-        if(restLogin.data.status === 0) {
-            console.log('PASO 3: Login exitoso, token de sesión recibido:');
-            return true;
-        }else {
-            console.error('Login fallido, credenciales inválidas o token corrupto:', restLogin.data);
-            return false;
+        if (restLogin.data.status === 0) {
+            const cookiesFinales = parseCookies(restLogin.headers['set-cookie']);
+            
+            // Si el login generó nueva sesión, la tomamos. Si no, usamos la del challenge.
+            const cookieAislada = cookiesFinales.aislada || cookiesChallenge.aislada;
+
+            return { 
+                exito: true, 
+                mensaje: 'Login exitoso',
+                datos_fase_0: {
+                    challenge_generado: challenge,
+                    hash_md5: hash,
+                    cookie_session_identify: cookieAislada // Cookie purificada y aislada
+                }
+            };
+        } else {
+            return { exito: false, mensaje: 'Credenciales inválidas' };
         }
     } catch (error) {
-        console.error('Error durante la conexión con CloudUCM:', error.message);
-        return false;
+        return { exito: false, mensaje: 'Error de red hacia Grandstream' };
     }
 }
 

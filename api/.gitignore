@@ -1,0 +1,28 @@
+# Dependencias (NUNCA subir esta carpeta, es muy pesada y cada quien la genera con npm install)
+node_modules/
+
+# Variables de Entorno (CRÍTICO PARA LA SEGURIDAD)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Logs de depuración de Node y NPM
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos del Sistema Operativo (Evita basura de Windows/Mac)
+.DS_Store
+Thumbs.db
+
+# Carpetas de cobertura de pruebas (si usan Jest en el futuro)
+coverage/
+
+# Archivos de editores de código (Configuraciones personales de VS Code)
+.vscode/
+!.vscode/extensions.json
+.idea/
