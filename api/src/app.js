@@ -7,6 +7,7 @@ dotenv.config();
 
 // 2. Ahora sí, importamos nuestras rutas locales (que ya podrán leer el .env)
 const bovedaRoutes = require('./routes/boveda_routes');
+const usuarioRoutes = require('./routes/usuario_routes');
 
 const app = express();
 
@@ -21,5 +22,7 @@ app.get('/api/v1/health', (req, res) => {
 
 // Conectamos la ruta POST
 app.use('/api/v1/boveda', bovedaRoutes);
+app.use('/api/v1/boveda', bovedaRoutes);
+app.use('/api/v1/usuarios', usuarioRoutes);
 
 module.exports = app;
