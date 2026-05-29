@@ -1,3 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-merci-dark: #000F08;
+  --color-merci-primary: #1C3738;
+  --color-merci-accent: #8BAAAD;
+  --color-merci-light: #F4FFF8;
+  --color-merci-neutral: #4D4847;
+}

@@ -44,61 +44,58 @@ const LoginUsuario = () => {
     };
 
     return (
-        <div className="flex justify-center items-center w-full pb-20">
-            <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg border border-slate-100">
-                
-                <div className="text-center mb-8">
-                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Iniciar Sesión</h2>
-                    <p className="text-sm text-slate-500">Plataforma Middleware MERCI</p>
+        <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-xl border border-merci-accent/20">
+            <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-merci-dark mb-2">Iniciar Sesión</h2>
+                <p className="text-sm text-merci-neutral">Plataforma Middleware MERCI</p>
+            </div>
+
+            {estado && (
+                <div className={`p-4 mb-6 text-sm font-medium rounded-lg text-center ${
+                    estado.tipo === 'exito' ? 'bg-green-50 text-green-800 border border-green-200' : 
+                    estado.tipo === 'error' ? 'bg-red-50 text-red-800 border border-red-200' : 
+                    estado.tipo === 'advertencia' ? 'bg-orange-50 text-orange-800 border border-orange-200' : 
+                    'bg-merci-light text-merci-primary border border-merci-accent/30'
+                }`}>
+                    {estado.texto}
+                </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-merci-neutral uppercase tracking-wide">
+                        Correo de Operador
+                    </label>
+                    <input 
+                        type="email" name="email" placeholder="ejemplo@inttelec.com" 
+                        onChange={handleChange} value={credenciales.email} required 
+                        className="w-full px-4 py-3 rounded-lg border border-merci-accent/40 focus:outline-none focus:ring-2 focus:ring-merci-primary focus:border-merci-primary transition-all text-merci-dark"
+                    />
                 </div>
 
-                {estado && (
-                    <div className={`p-4 mb-6 text-sm font-medium rounded-lg text-center ${
-                        estado.tipo === 'exito' ? 'bg-green-50 text-green-700 border border-green-200' : 
-                        estado.tipo === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 
-                        estado.tipo === 'advertencia' ? 'bg-orange-50 text-orange-700 border border-orange-200' : 
-                        'bg-blue-50 text-blue-700 border border-blue-200'
-                    }`}>
-                        {estado.texto}
-                    </div>
-                )}
+                <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-merci-neutral uppercase tracking-wide">
+                        Contraseña del Sistema
+                    </label>
+                    <input 
+                        type="password" name="password" placeholder="••••••••" 
+                        onChange={handleChange} value={credenciales.password} required 
+                        className="w-full px-4 py-3 rounded-lg border border-merci-accent/40 focus:outline-none focus:ring-2 focus:ring-merci-primary focus:border-merci-primary transition-all text-merci-dark"
+                    />
+                </div>
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                    <div className="flex flex-col gap-2">
-                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                            Correo de Operador
-                        </label>
-                        <input 
-                            type="email" name="email" placeholder="ejemplo@inttelec.com" 
-                            onChange={handleChange} value={credenciales.email} required 
-                            className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-700"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                            Contraseña del Sistema
-                        </label>
-                        <input 
-                            type="password" name="password" placeholder="••••••••" 
-                            onChange={handleChange} value={credenciales.password} required 
-                            className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-700"
-                        />
-                    </div>
-
-                    <button 
-                        type="submit" 
-                        disabled={estado?.tipo === 'cargando'} 
-                        className={`mt-2 w-full py-3.5 rounded-lg text-white font-semibold transition-all duration-200 ${
-                            estado?.tipo === 'cargando' 
-                                ? 'bg-blue-400 cursor-not-allowed' 
-                                : 'bg-blue-700 hover:bg-blue-800 shadow-md hover:shadow-lg'
-                        }`}
-                    >
-                        {estado?.tipo === 'cargando' ? 'Verificando...' : 'Autenticar'}
-                    </button>
-                </form>
-            </div>
+                <button 
+                    type="submit" 
+                    disabled={estado?.tipo === 'cargando'} 
+                    className={`mt-2 w-full py-3.5 rounded-lg text-white font-semibold transition-all duration-200 cursor-pointer ${
+                        estado?.tipo === 'cargando' 
+                            ? 'bg-merci-accent cursor-not-allowed' 
+                            : 'bg-merci-primary hover:bg-merci-dark shadow-md'
+                    }`}
+                >
+                    {estado?.tipo === 'cargando' ? 'Verificando...' : 'Autenticar'}
+                </button>
+            </form>
         </div>
     );
 };
