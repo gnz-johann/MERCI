@@ -1,12 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const RegistroUsuario = () => {
-    const navigate = useNavigate();
-    const [credenciales, setCredenciales] = useState({
-        email: '',
-        password: ''
-    });
+    const [credenciales, setCredenciales] = useState({ email: '', password: '' });
     const [estado, setEstado] = useState(null);
 
     const handleChange = (e) => {
@@ -16,77 +11,89 @@ const RegistroUsuario = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // 1. Validación estricta solicitada: Solo letras y números
         const esAlfanumerica = /^[a-zA-Z0-9]+$/.test(credenciales.password);
         if (!esAlfanumerica) {
-            setEstado({ tipo: 'error', texto: 'Para esta fase de pruebas, la contraseña solo debe contener letras y números.' });
+            setEstado({ tipo: 'error', texto: 'Para esta fase, la contraseña solo debe contener letras y números.' });
             return;
         }
 
-        setEstado({ tipo: 'cargando', texto: 'Creando usuario en MERCI...' });
+        setEstado({ tipo: 'cargando', texto: 'Creando cuenta de operador...' });
 
         try {
-            // 2. Petición real al backend local que acabamos de configurar
             const respuesta = await fetch('http://localhost:3000/api/v1/usuarios/registro', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(credenciales)
             });
 
             const data = await respuesta.json();
 
             if (!respuesta.ok) {
-                // Captura el error exacto que arroje nuestro try-catch del backend (ej. 409 Correo duplicado)
                 throw new Error(data.error || 'Ocurrió un error al registrar el usuario.');
             }
 
-            // 3. Flujo de éxito
-            setEstado({ tipo: 'exito', texto: 'Usuario creado correctamente. Redirigiendo al Login...' });
-            
-            // Ya no guardamos un JWT falso, redirigimos al login real
-            setTimeout(() => {
-                navigate('/login');
-            }, 1500);
+            setEstado({ tipo: 'exito', texto: 'Cuenta creada. Solicita tu asignación de extensión al administrador.' });
 
         } catch (error) {
-            // Se pinta de rojo el error proveniente del servidor o de la red
             setEstado({ tipo: 'error', texto: error.message });
         }
     };
 
     return (
-        <div style={{ padding: '20px', maxWidth: '400px', margin: '50px auto', border: '1px solid #ddd', borderRadius: '8px' }}>
-            <h2>1. Crear Cuenta MERCI</h2>
-            <p>Ingresa tus credenciales de acceso al sistema.</p>
-            
-            {/* Renderizado dinámico de alertas */}
-            {estado && (
-                <div style={{ 
-                    color: estado.tipo === 'exito' ? 'green' : estado.tipo === 'error' ? 'red' : 'blue', 
-                    marginBottom: '15px',
-                    fontWeight: 'bold'
-                }}>
-                    {estado.texto}
+        <div className="flex justify-center items-center w-full pb-20">
+            <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg border border-slate-100">
+                
+                <div className="text-center mb-8">
+                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Solicitar Acceso</h2>
+                    <p className="text-sm text-slate-500">Registro de nuevos integrantes</p>
                 </div>
-            )}
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <input 
-                    type="email" name="email" placeholder="Correo electrónico (@gmail.com permitido)" 
-                    onChange={handleChange} value={credenciales.email} required 
-                    style={{ padding: '10px' }}
-                />
-                <input 
-                    type="password" name="password" placeholder="Contraseña (Solo letras y números)" 
-                    onChange={handleChange} value={credenciales.password} required 
-                    style={{ padding: '10px' }}
-                />
-                <button type="submit" disabled={estado?.tipo === 'cargando'} style={{ padding: '10px', cursor: 'pointer' }}>
-                    Registrarse
-                </button>
-            </form>
+                {estado && (
+                    <div className={`p-4 mb-6 text-sm font-medium rounded-lg text-center ${
+                        estado.tipo === 'exito' ? 'bg-green-50 text-green-700 border border-green-200' : 
+                        estado.tipo === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 
+                        'bg-blue-50 text-blue-700 border border-blue-200'
+                    }`}>
+                        {estado.texto}
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                            Correo Electrónico
+                        </label>
+                        <input 
+                            type="email" name="email" placeholder="usuario@gmail.com" 
+                            onChange={handleChange} value={credenciales.email} required 
+                            className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-700"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                            Contraseña
+                        </label>
+                        <input 
+                            type="password" name="password" placeholder="Solo letras y números" 
+                            onChange={handleChange} value={credenciales.password} required 
+                            className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-700"
+                        />
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        disabled={estado?.tipo === 'cargando'} 
+                        className={`mt-2 w-full py-3.5 rounded-lg text-white font-semibold transition-all duration-200 ${
+                            estado?.tipo === 'cargando' 
+                                ? 'bg-slate-400 cursor-not-allowed' 
+                                : 'bg-slate-800 hover:bg-slate-900 shadow-md hover:shadow-lg'
+                        }`}
+                    >
+                        {estado?.tipo === 'cargando' ? 'Procesando...' : 'Registrar Cuenta'}
+                    </button>
+                </form>
+            </div>
         </div>
     );
 };

@@ -17,16 +17,13 @@ const LoginUsuario = () => {
         try {
             const respuesta = await fetch('http://localhost:3000/api/v1/usuarios/login', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(credenciales)
             });
 
             const data = await respuesta.json();
 
             if (!respuesta.ok) {
-                // Interceptamos de forma inteligente si el servidor indica que es un usuario sin empresa vinculada
                 if (respuesta.status === 403 && data.codigo === 'USUARIO_HUERFANO') {
                     setEstado({ tipo: 'advertencia', texto: data.error });
                     return;
@@ -34,12 +31,9 @@ const LoginUsuario = () => {
                 throw new Error(data.error || 'No se pudo validar el acceso.');
             }
 
-            // Guardamos el token JWT legítimo generado por el backend
             localStorage.setItem('merci_token', data.token);
-            
             setEstado({ tipo: 'exito', texto: `¡Bienvenido, ${data.empleado.nombre}! Acceso autorizado.` });
 
-            // Redirección directa hacia la raíz o el Workspace de trabajo
             setTimeout(() => {
                 navigate('/configurar-boveda');
             }, 1200);
@@ -50,98 +44,60 @@ const LoginUsuario = () => {
     };
 
     return (
-        <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            minHeight: '80vh',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-        }}>
-            <div style={{
-                width: '100%',
-                maxWidth: '420px',
-                padding: '40px',
-                backgroundColor: '#ffffff',
-                borderRadius: '12px',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-                border: '1px solid #eaeaea'
-            }}>
-                <div style={{ textAlign: 'center', marginBottom: '35px' }}>
-                    <h2 style={{ fontSize: '24px', fontWeight: '600', color: '#1a1a1a', margin: '0 0 10px 0' }}>
-                        Iniciar Sesión
-                    </h2>
-                    <p style={{ fontSize: '14px', color: '#666', margin: 0 }}>
-                        Plataforma Middleware MERCI Sandbox
-                    </p>
+        <div className="flex justify-center items-center w-full pb-20">
+            <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg border border-slate-100">
+                
+                <div className="text-center mb-8">
+                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Iniciar Sesión</h2>
+                    <p className="text-sm text-slate-500">Plataforma Middleware MERCI</p>
                 </div>
 
                 {estado && (
-                    <div style={{
-                        padding: '12px',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        marginBottom: '20px',
-                        fontWeight: '500',
-                        textAlign: 'center',
-                        backgroundColor: estado.tipo === 'exito' ? '#e6f4ea' : estado.tipo === 'error' ? '#fce8e6' : estado.tipo === 'advertencia' ? '#ffe6cc' : '#e8f0fe',
-                        color: estado.tipo === 'exito' ? '#137333' : estado.tipo === 'error' ? '#c5221f' : estado.tipo === 'advertencia' ? '#b06000' : '#1a73e8'
-                    }}>
+                    <div className={`p-4 mb-6 text-sm font-medium rounded-lg text-center ${
+                        estado.tipo === 'exito' ? 'bg-green-50 text-green-700 border border-green-200' : 
+                        estado.tipo === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 
+                        estado.tipo === 'advertencia' ? 'bg-orange-50 text-orange-700 border border-orange-200' : 
+                        'bg-blue-50 text-blue-700 border border-blue-200'
+                    }`}>
                         {estado.texto}
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label style={{ fontSize: '12px', fontWeight: '600', color: '#444', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
                             Correo de Operador
                         </label>
                         <input 
                             type="email" name="email" placeholder="ejemplo@inttelec.com" 
                             onChange={handleChange} value={credenciales.email} required 
-                            style={{ padding: '12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '15px', outline: 'none' }}
+                            className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-700"
                         />
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label style={{ fontSize: '12px', fontWeight: '600', color: '#444', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
                             Contraseña del Sistema
                         </label>
                         <input 
                             type="password" name="password" placeholder="••••••••" 
                             onChange={handleChange} value={credenciales.password} required 
-                            style={{ padding: '12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '15px', outline: 'none' }}
+                            className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-700"
                         />
                     </div>
 
                     <button 
                         type="submit" 
                         disabled={estado?.tipo === 'cargando'} 
-                        style={{ 
-                            padding: '14px', 
-                            borderRadius: '6px', 
-                            backgroundColor: '#1a1a1a', 
-                            color: '#ffffff', 
-                            border: 'none', 
-                            fontSize: '15px', 
-                            fontWeight: '600', 
-                            cursor: estado?.tipo === 'cargando' ? 'not-allowed' : 'pointer',
-                            opacity: estado?.tipo === 'cargando' ? 0.7 : 1,
-                            transition: 'background-color 0.2s ease',
-                            marginTop: '10px'
-                        }}
+                        className={`mt-2 w-full py-3.5 rounded-lg text-white font-semibold transition-all duration-200 ${
+                            estado?.tipo === 'cargando' 
+                                ? 'bg-blue-400 cursor-not-allowed' 
+                                : 'bg-blue-700 hover:bg-blue-800 shadow-md hover:shadow-lg'
+                        }`}
                     >
                         {estado?.tipo === 'cargando' ? 'Verificando...' : 'Autenticar'}
                     </button>
                 </form>
-
-                <div style={{ textAlign: 'center', marginTop: '25px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
-                    <button 
-                        onClick={() => navigate('/')} 
-                        style={{ background: 'none', border: 'none', color: '#555', fontSize: '14px', cursor: 'pointer', textDecoration: 'underline' }}
-                    >
-                        Volver a la Página Principal
-                    </button>
-                </div>
             </div>
         </div>
     );
